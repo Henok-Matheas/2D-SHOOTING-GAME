@@ -46,6 +46,12 @@ YELLOW_SPACESHIP_IMAGE = pygame.image.load(
 YELLOW_SPACESHIP = pygame.transform.rotate(
     pygame.transform.scale(YELLOW_SPACESHIP_IMAGE, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), ANGLE)
 
+YELLOW_SPACESHIP2 = pygame.transform.rotate(
+    pygame.transform.scale(YELLOW_SPACESHIP_IMAGE, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), ANGLE)
+
+YELLOW_SPACESHIP3 = pygame.transform.rotate(
+    pygame.transform.scale(YELLOW_SPACESHIP_IMAGE, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), ANGLE)
+
 # RED_SPACESHIP_IMAGE = pygame.image.load(
 #     os.path.join("Assets", "spaceship_red.png"))
 
@@ -65,7 +71,7 @@ def draw_winner(text):
     pygame.time.delay(5000)
 
 
-def draw(red, yellow, yellow_bullets):
+def draw(yellow2, yellow3, yellow):
     WINDOW.fill(BLACK)
     walls.draw(WINDOW)
 
@@ -75,10 +81,8 @@ def draw(red, yellow, yellow_bullets):
     #     "HEALTH: " + str(yellow_health), 1, WHITE)
 
     WINDOW.blit(YELLOW_SPACESHIP, (yellow.x, yellow.y))
-
-
-    for bullet in yellow_bullets:
-        pygame.draw.rect(WINDOW, YELLOW, bullet)
+    WINDOW.blit(YELLOW_SPACESHIP2, (yellow2.x, yellow2.y))
+    WINDOW.blit(YELLOW_SPACESHIP3, (yellow3.x, yellow3.y))
 
 
     pygame.display.update()
@@ -190,11 +194,12 @@ def handle_bullets(yellow_bullets,yellow):
 
 
 def main():
-    yellow = pygame.Rect(700, 0, SPACESHIP_WIDTH, SPACESHIP_HEIGHT)
-    red = pygame.Rect(700, 300, SPACESHIP_WIDTH, SPACESHIP_HEIGHT)
+    yellow = pygame.Rect(850, 450, SPACESHIP_WIDTH, SPACESHIP_HEIGHT)
+    yellow2 = pygame.Rect(100, 200, SPACESHIP_WIDTH, SPACESHIP_HEIGHT)
+    yellow3 = pygame.Rect(400, 400, SPACESHIP_WIDTH, SPACESHIP_HEIGHT)
     yellow_bullets = []
     red_bullets = []
-    path = s(yellow, [0,0])
+    path = s(yellow, [yellow2.x,yellow2.y])
     print(path)
     yellow_health = 100
     red_health = 100
@@ -247,7 +252,7 @@ def main():
             yellow_movement_handler(yellow, path.pop())
         # red_movement_handler(keys_pressed, red)
 
-        draw(red, yellow, yellow_bullets)
+        draw(yellow2, yellow3, yellow)
 
 
 if __name__ == "__main__":

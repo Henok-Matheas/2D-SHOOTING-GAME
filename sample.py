@@ -190,7 +190,7 @@ def handle_bullets(yellow_bullets,yellow):
 
 
 def main():
-    yellow = pygame.Rect(100, 300, SPACESHIP_WIDTH, SPACESHIP_HEIGHT)
+    yellow = pygame.Rect(700, 0, SPACESHIP_WIDTH, SPACESHIP_HEIGHT)
     red = pygame.Rect(700, 300, SPACESHIP_WIDTH, SPACESHIP_HEIGHT)
     yellow_bullets = []
     red_bullets = []

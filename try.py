@@ -56,6 +56,9 @@ def main():
             if event.type == pygame.QUIT:
                 pygame.quit()
 
+            if event.type == pygame.pygame.MOUSEBUTTONDOWN:
+                pass
+
         keys_pressed = pygame.key.get_pressed()
         draw(user_group, keys_pressed)
 

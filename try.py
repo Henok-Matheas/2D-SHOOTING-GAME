@@ -1,4 +1,5 @@
 from user import User
+from gameWall import walls
 import os
 import pygame
 
@@ -29,6 +30,9 @@ DAMAGE = 5
 USER_HIT = pygame.USEREVENT + 1
 ENEMY_HIT = pygame.USEREVENT + 2
 
+USER_DEAD = pygame.USEREVENT + 3
+ENEMY_DEAD = pygame.USEREVENT + 4
+
 # BULLET_HIT_SOUND = pygame.mixer.Sound(os.path.join(
 #     "Assets", "Grenade+1.mp3"))
 # BULLET_FIRE_SOUND = pygame.mixer.Sound(os.path.join(
@@ -37,6 +41,7 @@ ENEMY_HIT = pygame.USEREVENT + 2
 
 def draw(user_group, keys_pressed):
     WINDOW.fill((0, 0, 0))
+    walls.draw(WINDOW)
     user_group.draw(WINDOW)
     user_group.update(keys_pressed, WIDTH, HEIGHT, VEL)
     pygame.display.update()
@@ -46,7 +51,7 @@ def draw(user_group, keys_pressed):
 
 
 def main():
-    user = User(100, 100, "survivor-idle_rifle_0.png")
+    user = User(50, 50, "survivor-idle_rifle_0.png")
     user_group = pygame.sprite.Group()
     user_group.add(user)
     clock = pygame.time.Clock()
@@ -56,7 +61,7 @@ def main():
             if event.type == pygame.QUIT:
                 pygame.quit()
 
-            if event.type == pygame.pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN:
                 pass
 
         keys_pressed = pygame.key.get_pressed()

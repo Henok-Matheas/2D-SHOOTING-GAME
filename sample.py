@@ -1,7 +1,9 @@
+import math
 import os
 import pygame
 from gameWalls import walls
 from collections import deque, defaultdict
+import heapq
 WIDTH, HEIGHT = 900, 500
 WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Frist Game")
@@ -17,7 +19,7 @@ WHITE = (255, 255, 255)
 YELLOW = (255, 255, 0)
 RED = (255, 0, 0)
 FPS = 60
-VEL = 10
+VEL = 5
 
 SPACESHIP_WIDTH, SPACESHIP_HEIGHT = 50, 44
 ANGLE = 90
@@ -89,8 +91,8 @@ def draw(yellow2, yellow3, yellow):
 
 
 def yellow_movement_handler(yellow, p):
-    yellow.x = p[0]
-    yellow.y = p[1]
+    yellow.topleft = [p[0],p[1]]
+    
 
     # initialx, initialy = yellow.x, yellow.y
     
@@ -109,6 +111,8 @@ def yellow_movement_handler(yellow, p):
     #         yellow.x = initialx
     #         yellow.y = initialy
     #         break
+def heuristic(cur, tar):
+    return abs(math.sqrt((cur[0]-tar[0])**2+(cur[1]-tar[1])**2))
 def retrace(start, paths):
 
         cur = start
@@ -121,6 +125,42 @@ def retrace(start, paths):
         return path
 
 dirc = [[0, VEL], [VEL, 0], [VEL,VEL], [-VEL, -VEL], [0,-VEL],[-VEL,0],[-VEL, VEL], [VEL, -VEL]]
+def aStarSearch( start, end):
+    #radius in miles
+    paths = defaultdict(list)
+
+    heap = [[0,0, (start.x, start.y), None]]
+    
+    visited = set()
+    while heap:
+        
+        current = heapq.heappop(heap)
+        print(current)
+        if current[2] not in paths or paths[current[2]][1] > current[1]:
+            paths[current[2]] = [current[3], current[1]]
+        visited.add(current[2])
+
+        if abs(end[0] -current[2][0]) < 50 and abs(end[1] -current[2][1]) < 50:
+            return retrace(current[2], paths)
+
+        for d in dirc:
+            new = (current[2][0]+d[0] , current[2][1]+d[1])
+            if new not in visited and new[0] >= 0 and new[0] <= WIDTH and new[1] >= 0 and new[1] <= HEIGHT:
+                iscollide = False
+                visited.add(new)
+                for i in walls:
+                    wallxy = i.rect.topleft
+                    if (wallxy[0] <= new[0] <= wallxy[0]+ i.image.get_width() or wallxy[0] <= new[0]+45 <= wallxy[0]+ i.image.get_width()) and (wallxy[1] <= new[1] <= wallxy[1]+i.image.get_height() or wallxy[1] <= new[1] <= wallxy[1]+i.image.get_height()):
+                        iscollide = True
+                        break
+                if not iscollide:
+                    heapq.heappush(heap, [current[1] + VEL + 
+                    heuristic(new, end), current[1] + VEL , 
+                    new, current[2]])
+
+
+    return []
+
 def s(yellow, target):
     paths = defaultdict(list)
     q = deque()
@@ -199,7 +239,7 @@ def main():
     yellow3 = pygame.Rect(400, 400, SPACESHIP_WIDTH, SPACESHIP_HEIGHT)
     yellow_bullets = []
     red_bullets = []
-    path = s(yellow, [yellow2.x,yellow2.y])
+    path = aStarSearch(yellow, [0,0])
     print(path)
     yellow_health = 100
     red_health = 100

@@ -14,7 +14,7 @@ class User(pygame.sprite.Sprite):
         self.rot = 0
         self.health = 100
         self.originalImage = pygame.transform.scale(
-            pygame.image.load(os.path.join("Assets", image)), (self.WIDTH, self.HEIGHT))
+            pygame.image.load(os.path.join("Assets", "images", image)), (self.WIDTH, self.HEIGHT))
         self.image = self.originalImage
         self.rect = self.image.get_rect()
         self.rect.center = (self.x, self.y)

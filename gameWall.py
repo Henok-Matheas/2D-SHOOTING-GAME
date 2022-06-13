@@ -6,6 +6,8 @@ WIDTH, HEIGHT = 900, 500
 class Wall(pygame.sprite.Sprite):
     def __init__(self, width, height, x, y, color):
         super().__init__()
+        self.width = width
+        self.height = height
         self.image = pygame.Surface([width, height])
         self.image.fill(color)
         self.rect = self.image.get_rect()

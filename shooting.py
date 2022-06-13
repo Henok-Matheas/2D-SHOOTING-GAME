@@ -3,11 +3,12 @@ from gameWall import walls
 import os
 import pygame
 from bullet import Bullet
+from enemy import Enemy
 
 
 WIDTH, HEIGHT = 900, 600
 WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("First Game")
+pygame.display.set_caption("Shooting Game")
 pygame.font.init()
 pygame.mixer.init()
 
@@ -35,20 +36,41 @@ USER_DEAD = pygame.USEREVENT + 3
 ENEMY_DEAD = pygame.USEREVENT + 4
 
 BULLET_HIT_SOUND = pygame.mixer.Sound(os.path.join(
-    "Assets", "Grenade+1.mp3"))
+    "Assets", "sounds", "Grenade+1.mp3"))
 BULLET_FIRE_SOUND = pygame.mixer.Sound(os.path.join(
-    "Assets", "Gun+Silencer.mp3"))
+    "Assets", "sounds", "Gun+Silencer.mp3"))
+
+USER_HIT_SOUND = pygame.mixer.Sound(os.path.join(
+    "Assets", "sounds", "3grunt4.wav"))
+
+USER_DEAD_SOUND = pygame.mixer.Sound(os.path.join(
+    "Assets", "sounds", "yell12.wav"))
+
+ENEMY_HIT_SOUND = pygame.mixer.Sound(os.path.join(
+    "Assets", "sounds", "3grunt4.wav"))
+
+ENEMY_DEAD_SOUND = pygame.mixer.Sound(os.path.join(
+    "Assets", "sounds", "yell12.wav"))
+
+WALKING_SOUND = pygame.mixer.Sound(os.path.join(
+    "Assets", "sounds", "Grenade+1.mp3"))
 
 
 def handle_bullets(user_bullets, enemy_bullets, user_group, enemy_group):
     for bullet in user_bullets:
         bullet.update(WIDTH, HEIGHT)
 
-        # for enemy in enemy_group:
-        #     if enemy.colliderect(bullet):
-        #         print("enemy has been shot")
-        #         pygame.event.post(pygame.event.Event(ENEMY_HIT))
-        #         user_bullets.remove(bullet)
+        for enemy in enemy_group:
+            if enemy.rect.colliderect(bullet):
+                pygame.event.post(pygame.event.Event(ENEMY_HIT))
+                enemy.health -= DAMAGE
+                BULLET_HIT_SOUND.play()
+                ENEMY_HIT_SOUND.play()
+                user_bullets.remove(bullet)
+
+            if enemy.health <= 0:
+                ENEMY_DEAD_SOUND.play()
+                enemy_group.remove(enemy)
 
         if 0 > bullet.x or bullet.x > WIDTH or 0 > bullet.y or bullet.y > HEIGHT:
             user_bullets.remove(bullet)
@@ -70,10 +92,11 @@ def handle_bullets(user_bullets, enemy_bullets, user_group, enemy_group):
     #         enemy_bullets.remove(bullet)
 
 
-def draw(user_group, keys_pressed, user_bullets):
+def draw(user_group, enemy_group, keys_pressed, user_bullets):
     WINDOW.fill((0, 0, 0))
     walls.draw(WINDOW)
     user_group.draw(WINDOW)
+    enemy_group.draw(WINDOW)
     user_group.update(keys_pressed, WIDTH, HEIGHT, VEL)
 
     user_health_text = ""
@@ -94,10 +117,15 @@ def draw(user_group, keys_pressed, user_bullets):
 
 def main():
     user = User(50, 50, "survivor-idle_rifle_0.png")
+    enemy1 = Enemy(450, 50, "survivor-idle_rifle_0.png")
+    enemy2 = Enemy(600, 450, "survivor-idle_rifle_0.png")
     user_bullets = []
     enemy_bullets = []
     user_group = pygame.sprite.Group()
+    enemy_group = pygame.sprite.Group()
+    enemy_group.add(enemy1, enemy2)
     user_group.add(user)
+
     clock = pygame.time.Clock()
     while True:
         clock.tick(FPS)
@@ -113,8 +141,11 @@ def main():
                     BULLET_FIRE_SOUND.play()
 
         keys_pressed = pygame.key.get_pressed()
-        handle_bullets(user_bullets, None, user_group, None)
-        draw(user_group, keys_pressed, user_bullets)
+        if keys_pressed:
+            pass
+
+        handle_bullets(user_bullets, enemy_bullets, user_group, enemy_group)
+        draw(user_group, enemy_group, keys_pressed, user_bullets)
 
 
 if __name__ == "__main__":

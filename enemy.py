@@ -2,6 +2,7 @@ import pygame
 import os
 import math
 from gameWall import walls
+from pathfind import *
 
 
 class Enemy(pygame.sprite.Sprite):
@@ -9,15 +10,21 @@ class Enemy(pygame.sprite.Sprite):
         super().__init__()
         self.x = x
         self.y = y
-        self.HEIGHT = 50
-        self.WIDTH = 50
+        self.HEIGHT = 25
+        self.WIDTH = 25
+        self.IMAGE_WIDTH = 50
+        self.IMAGE_HEIGHT = 50
         self.rot = 0
         self.health = 100
         self.originalImage = pygame.transform.scale(
             pygame.image.load(os.path.join("Assets", "images", image)), (self.WIDTH, self.HEIGHT))
         self.image = self.originalImage
+        self.image = pygame.transform.scale(
+            self.originalImage, (self.IMAGE_WIDTH, self.IMAGE_HEIGHT))
         self.rect = self.image.get_rect()
         self.rect.center = (self.x, self.y)
+        self.path = []
+        self.prev = None
 
     def shoot(self):
         pass
@@ -25,35 +32,32 @@ class Enemy(pygame.sprite.Sprite):
     def to_radian(self, rot):
         return math.pi * 2 * rot / 360
 
-    def move(self, keys_pressed, WIDTH, HEIGHT, VEL, prev):
+    # def move(self, step, WIDTH, HEIGHT, VEL):
+    #     initialx, initialy = self.x, self.y
+    #     self.x, self.y = step
+    #     self.rect.center = (self.x, self.y)
+    #     for wall in walls:
+    #         if self.rect.colliderect(wall):
+    #             self.x, self.y = initialx, initialy
 
-        initialx, initialy = self.x, self.y
+    def find_rot(self, user):
+        self.rot = math.atan((self.y - user.y) / (self.x - user.y))
 
-        if keys_pressed[pygame.K_a]:
-            self.rot = (self.rot + 5) % 360
+    def move(self):
 
-        if keys_pressed[pygame.K_d]:
-            self.rot = (self.rot - 5) % 360
-
-        if keys_pressed[pygame.K_w]:
-            self.x += (VEL * math.cos(self.to_radian(self.rot))) if 0 < (self.x +
-                                                                         VEL * math.cos(self.to_radian(self.rot))) < WIDTH else 0
-            self.y -= (VEL * math.sin(self.to_radian(self.rot))) if 0 < (self.y -
-                                                                         VEL * math.sin(self.to_radian(self.rot))) < WIDTH else 0
-
-        if keys_pressed[pygame.K_s]:
-            self.x -= (VEL * math.cos(self.to_radian(self.rot))) if 0 < (self.x -
-                                                                         VEL * math.cos(self.to_radian(self.rot))) < WIDTH else 0
-            self.y += (VEL * math.sin(self.to_radian(self.rot))) if 0 < (self.y +
-                                                                         VEL * math.sin(self.to_radian(self.rot))) < WIDTH else 0
+        self.x, self.y = self.path.pop()
+        # print("the pervious is ", self.prev, " the next is ", self.x, self.y)
         self.rect.center = (self.x, self.y)
+        if self.prev != None:
+            rot = math.atan(
+                (self.prev[1] - self.y) / (self.prev[0] - self.x)) if (self.x - self.prev[0]) != 0 else 0
+            print("the roatation", rot)
+            self.image = pygame.transform.scale(
+                pygame.transform.rotate(self.originalImage, rot), (self.IMAGE_WIDTH, self.IMAGE_HEIGHT))
+        self.prev = self.x, self.y
 
-        for wall in walls:
-            if self.rect.colliderect(wall):
-                self.x, self.y = initialx, initialy
-
-    def update(self, keys_pressed, WIDTH, HEIGHT, VEL):
-        prev = self.rot
-        self.image = pygame.transform.rotate(
-            self.originalImage, self.rot)
-        self.move(keys_pressed, WIDTH, HEIGHT, VEL, prev)
+    def update(self, target, WIDTH, HEIGHT):
+        if target != None:
+            self.path = path_find(self, target[0], target[1], WIDTH, HEIGHT)
+        if self.path:
+            self.move()

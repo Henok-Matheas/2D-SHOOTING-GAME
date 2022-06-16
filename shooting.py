@@ -1,3 +1,4 @@
+import math
 from user import User
 from gameWall import walls
 import os
@@ -19,14 +20,16 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 YELLOW = (255, 255, 0)
 RED = (255, 0, 0)
-FPS = 60
-VEL = 1
+FPS = 120
+VEL = 5
 
 ANGLE = 90
 BULLET_VEL = 7
 MAX_BULLETS = 5
+ENEMY_MAX_BULLETS = 1
 BULLET_WIDTH, BULLET_HEIGHT = 5, 5
 DAMAGE = 5
+SHOOTING_RADIUS = 150
 
 
 USER_HIT = pygame.USEREVENT + 1
@@ -67,37 +70,54 @@ def handle_bullets(user_bullets, enemy_bullets, user_group, enemy_group):
                 BULLET_HIT_SOUND.play()
                 ENEMY_HIT_SOUND.play()
                 user_bullets.remove(bullet)
+                break
 
             if enemy.health <= 0:
                 ENEMY_DEAD_SOUND.play()
                 enemy_group.remove(enemy)
 
-        if 0 > bullet.x or bullet.x > WIDTH or 0 > bullet.y or bullet.y > HEIGHT:
+        if 0 >= bullet.x or bullet.x >= WIDTH or 0 >= bullet.y or bullet.y >= HEIGHT:
             user_bullets.remove(bullet)
+            continue
 
         for wall in walls:
             if bullet.rect.colliderect(wall):
                 user_bullets.remove(bullet)
+                break
 
-    # for bullet in enemy_bullets:
-    #     if bullet == None:
-    #         continue
-    #     bullet.x -= BULLET_VEL
+    for bullet in enemy_bullets:
+        bullet.update(WIDTH, HEIGHT)
 
-    #     if user.colliderect(bullet):
-    #         print("user has been shot")
-    #         pygame.event.post(pygame.event.Event(user_HIT))
-    #         enemy_bullets.remove(bullet)
-    #     elif bullet.x < 0:
-    #         enemy_bullets.remove(bullet)
+        for user in user_group:
+            if user.rect.colliderect(bullet):
+                pygame.event.post(pygame.event.Event(USER_HIT))
+                user.health -= DAMAGE
+                BULLET_HIT_SOUND.play()
+                USER_HIT_SOUND.play()
+                enemy_bullets.remove(bullet)
+                break
+
+            if user.health <= 0:
+                USER_DEAD_SOUND.play()
+                user_group.remove(user)
+
+        if 0 >= bullet.x or bullet.x >= WIDTH or 0 >= bullet.y or bullet.y >= HEIGHT:
+            enemy_bullets.remove(bullet)
+            continue
+
+        for wall in walls:
+            if bullet.rect.colliderect(wall):
+                enemy_bullets.remove(bullet)
+                break
 
 
-def draw(user_group, enemy_group, keys_pressed, user_bullets):
+def draw(user_group, enemy_group, keys_pressed, user_bullets, enemy_bullets, target):
     WINDOW.fill((0, 0, 0))
     walls.draw(WINDOW)
     user_group.draw(WINDOW)
     enemy_group.draw(WINDOW)
     user_group.update(keys_pressed, WIDTH, HEIGHT, VEL)
+    enemy_group.update(target, WIDTH, HEIGHT)
 
     user_health_text = ""
     for user in user_group:
@@ -109,6 +129,8 @@ def draw(user_group, enemy_group, keys_pressed, user_bullets):
 
     for bullet in user_bullets:
         pygame.draw.rect(WINDOW, YELLOW, bullet.rect)
+    for bullet in enemy_bullets:
+        pygame.draw.rect(WINDOW, YELLOW, bullet.rect)
     pygame.display.update()
 
 
@@ -116,15 +138,16 @@ def draw(user_group, enemy_group, keys_pressed, user_bullets):
 
 
 def main():
-    user = User(50, 50, "survivor-idle_rifle_0.png")
-    enemy1 = Enemy(450, 50, "survivor-idle_rifle_0.png")
-    enemy2 = Enemy(600, 450, "survivor-idle_rifle_0.png")
-    user_bullets = []
-    enemy_bullets = []
     user_group = pygame.sprite.Group()
     enemy_group = pygame.sprite.Group()
+    user = User(50, 50, "survivor-idle_rifle_0.png")
+    enemy1 = Enemy(600, 450, "survivor-idle_rifle_0.png")
+    enemy2 = Enemy(450, 50, "survivor-idle_rifle_0.png")
+    user_bullets = []
+    enemy_bullets = []
     enemy_group.add(enemy1, enemy2)
     user_group.add(user)
+    target = None
 
     clock = pygame.time.Clock()
     while True:
@@ -139,13 +162,27 @@ def main():
                         user_bullets.append(
                             Bullet(user.rect.centerx, user.rect.centery, user.rot, BULLET_VEL, BULLET_WIDTH, BULLET_HEIGHT))
                     BULLET_FIRE_SOUND.play()
+                    target = user.rect.centerx, user.rect.centery
+
+        # clock.tick(24)w
+        for user in user_group:
+            for enemy in enemy_group:
+                if math.sqrt((enemy.rect.x - user.rect.x) ** 2 + (enemy.rect.y - user.rect.y) ** 2) <= SHOOTING_RADIUS and len(enemy_bullets) < ENEMY_MAX_BULLETS:
+                    rot = math.atan(
+                        (enemy.rect.centery - user.rect.centery) / (enemy.rect.centerx - user.rect.centerx)) if (enemy.rect.centerx - user.rect.centerx) != 0 else 0
+                    # rot = math.atan(
+                    #     (enemy.rect.x - user.rect.x) / (enemy.rect.y - user.rect.y)) if (enemy.rect.y - user.rect.y) != 0 else 0
+                    print("the rotation is", rot)
+                    enemy_bullets.append(
+                        Bullet(enemy.rect.centerx, enemy.rect.centery, math.pi * 2 * rot / 360, BULLET_VEL, BULLET_WIDTH, BULLET_HEIGHT))
+                    BULLET_FIRE_SOUND.play()
 
         keys_pressed = pygame.key.get_pressed()
-        if keys_pressed:
-            pass
 
         handle_bullets(user_bullets, enemy_bullets, user_group, enemy_group)
-        draw(user_group, enemy_group, keys_pressed, user_bullets)
+        draw(user_group, enemy_group, keys_pressed,
+             user_bullets, enemy_bullets, target)
+        target = None
 
 
 if __name__ == "__main__":

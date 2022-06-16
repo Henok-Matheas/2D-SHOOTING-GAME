@@ -164,17 +164,17 @@ def main():
                     BULLET_FIRE_SOUND.play()
                     target = user.rect.centerx, user.rect.centery
 
-        # clock.tick(24)w
+        clock.tick(30)
         for user in user_group:
             for enemy in enemy_group:
                 if math.sqrt((enemy.rect.x - user.rect.x) ** 2 + (enemy.rect.y - user.rect.y) ** 2) <= SHOOTING_RADIUS and len(enemy_bullets) < ENEMY_MAX_BULLETS:
-                    rot = math.atan(
-                        (enemy.rect.centery - user.rect.centery) / (enemy.rect.centerx - user.rect.centerx)) if (enemy.rect.centerx - user.rect.centerx) != 0 else 0
-                    # rot = math.atan(
-                    #     (enemy.rect.x - user.rect.x) / (enemy.rect.y - user.rect.y)) if (enemy.rect.y - user.rect.y) != 0 else 0
-                    print("the rotation is", rot)
+                    # rot = math.awwwentery - user.rect.centery) / (enemy.rect.centerx - user.rect.centerx)) if (enemy.rect.centerx - user.rect.centerx) != 0 else 0
+                    rot = math.atan2(
+                        (user.rect.centery - enemy.rect.centery), (user.rect.centerx - enemy.rect.centerx))*180/math.pi * -1
                     enemy_bullets.append(
-                        Bullet(enemy.rect.centerx, enemy.rect.centery, math.pi * 2 * rot / 360, BULLET_VEL, BULLET_WIDTH, BULLET_HEIGHT))
+                        Bullet(enemy.rect.centerx, enemy.rect.centery, rot, BULLET_VEL, BULLET_WIDTH, BULLET_HEIGHT))
+                    enemy.image = pygame.transform.scale(pygame.transform.rotate(
+                        enemy.originalImage, rot), (enemy.IMAGE_WIDTH, enemy.IMAGE_HEIGHT))
                     BULLET_FIRE_SOUND.play()
 
         keys_pressed = pygame.key.get_pressed()

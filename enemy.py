@@ -47,13 +47,15 @@ class Enemy(pygame.sprite.Sprite):
 
         self.x, self.y = self.path.pop()
         # print("the pervious is ", self.prev, " the next is ", self.x, self.y)
+        rot = 0
         self.rect.center = (self.x, self.y)
         if self.prev != None:
-            rot = math.atan(
-                (self.prev[1] - self.y) / (self.prev[0] - self.x)) if (self.x - self.prev[0]) != 0 else 0
-            print("the roatation", rot)
-            self.image = pygame.transform.scale(
-                pygame.transform.rotate(self.originalImage, rot), (self.IMAGE_WIDTH, self.IMAGE_HEIGHT))
+            rot = math.atan2((self.prev[1] - self.y),
+                             (self.prev[0] - self.x))*180/math.pi
+            # rot = math.atan(
+            #     (self.prev[1] - self.y) / (self.prev[0] - self.x)) if (self.x - self.prev[0]) != 0 else 0
+            # print("the roatation", rot)
+        self.image = pygame.transform.rotate(self.image, rot)
         self.prev = self.x, self.y
 
     def update(self, target, WIDTH, HEIGHT):

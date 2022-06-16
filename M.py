@@ -18,7 +18,7 @@ WHITE = (255, 255, 255)
 YELLOW = (255, 255, 0)
 RED = (255, 0, 0)
 FPS = 60
-VEL = 1
+VEL = 3
 
 ANGLE = 90
 BULLET_VEL = 7

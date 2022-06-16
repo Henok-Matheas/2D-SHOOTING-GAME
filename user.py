@@ -4,6 +4,7 @@ import math
 from gameWall import walls
 
 
+
 class User(pygame.sprite.Sprite):
     def __init__(self, x, y, image):
         super().__init__()
@@ -30,10 +31,10 @@ class User(pygame.sprite.Sprite):
         initialx, initialy = self.x, self.y
 
         if keys_pressed[pygame.K_a]:
-            self.rot = (self.rot + 5) % 360
+            self.rot = (self.rot + 3) % 360
 
         if keys_pressed[pygame.K_d]:
-            self.rot = (self.rot - 5) % 360
+            self.rot = (self.rot - 3) % 360
 
         if keys_pressed[pygame.K_w]:
             self.x += (VEL * math.cos(self.to_radian(self.rot))) if 0 < (self.x +
@@ -56,4 +57,4 @@ class User(pygame.sprite.Sprite):
         prev = self.rot
         self.image = pygame.transform.rotate(
             self.originalImage, self.rot)
-        self.move(keys_pressed, WIDTH, HEIGHT, VEL, prev)
+        self.move(keys_pressed, WIDTH, HEIGHT, 10, prev)

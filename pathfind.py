@@ -20,7 +20,8 @@ def retrace(start, paths):
             cur = paths[cur][0]
              
         return path
-def findPath( start, end):
+        
+def findPath( start, end, width, height):
     #radius in miles
 
     if start.x < 0:

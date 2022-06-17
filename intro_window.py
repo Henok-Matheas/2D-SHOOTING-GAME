@@ -74,7 +74,7 @@ def init():
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
     # LOADING IMAGE
-    image = Image.open("Assets/images/tex.png")
+    image = Image.open("Assets/images/survivor-move_shotgun_2.png")
     width, height = image.width, image.height
     image_data = np.array(list(image.getdata()), dtype=np.uint8)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height,
@@ -127,7 +127,7 @@ def init():
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
     # LOADING IMAGE
-    space_image = Image.open("Assets/images/space.png")
+    space_image = Image.open("Assets/images/survivor-move_shotgun_2.png")
     width, height = space_image.width, space_image.height
     space_image_data = np.array(list(space_image.getdata()), dtype=np.uint8)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height,

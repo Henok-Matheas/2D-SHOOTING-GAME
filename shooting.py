@@ -6,7 +6,10 @@ import os
 import pygame
 from bullet import Bullet
 from enemy import Enemy
+from character_menu import char_menu
 
+
+USER_IMAGE = char_menu()
 
 WIDTH, HEIGHT = 900, 600
 WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -155,7 +158,7 @@ def draw_winner(text):
 def main():
     user_group = pygame.sprite.Group()
     enemy_group = pygame.sprite.Group()
-    user = User(50, 50, "survivor-idle_rifle_0.png")
+    user = User(50, 50, USER_IMAGE)
     enemy1 = Enemy(600, 450, "survivor-idle_rifle_0.png")
     enemy2 = Enemy(450, 50, "survivor-idle_rifle_0.png")
     user_bullets = []

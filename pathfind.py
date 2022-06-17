@@ -1,14 +1,29 @@
+import pygame
 from gameWall import walls
 import heapq
 import math
 
-VEL = 5
+from collections import defaultdict
+VEL = 2
 # left, right, up, down, left_up, left_down, right_up, right_down
-DIRECTIONS = [[-VEL, 0], [VEL, 0], [-VEL, 0],
-              [VEL, 0], [-VEL, -VEL], [-VEL, VEL], [VEL, -VEL], [VEL, VEL]]
+dirc = [[0, VEL], [VEL, 0], [VEL, VEL], [-VEL, -VEL],
+        [0, -VEL], [-VEL, 0], [-VEL, VEL], [VEL, -VEL]]
 
 
-FOUND_RADIUS = 10
+def heuristic(cur, tar):
+    return abs(math.sqrt((cur[0]-tar[0])**2+(cur[1]-tar[1])**2))
+
+
+def retrace(start, paths):
+
+    cur = start
+    path = []
+
+    while cur != None:
+        path.append(cur)
+        cur = paths[cur][0]
+
+    return path
 
 
 def valid(x, y, WIDTH, HEIGHT):
@@ -20,55 +35,91 @@ def valid(x, y, WIDTH, HEIGHT):
     return True
 
 
-def distance(x1, y1, x2, y2):
-    return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+def path_find(start, end, WIDTH, HEIGHT):
+    #radius in miles
 
+    if start.x < 0:
+        start.x = 0
+    if start.y < 0:
+        start.y = 0
 
-def path_find(enemy, fire_x, fire_y, WIDTH, HEIGHT):
-    WEIGHT = 1
-    fire_x = int(fire_x)
-    fire_y = int(fire_y)
-    heap = [(WEIGHT + distance(enemy.x, enemy.y,
-             fire_x, fire_y), WEIGHT, enemy.x, enemy.y)]
-    best_parent = {}
-    visited = set([(enemy.x, enemy.y)])
-    if (fire_x, fire_y) == (enemy.x, enemy.y):
-        return []
+    paths = defaultdict(list)
 
-    last = None
+    heap = [[0, 0, (start.x, start.y), None]]
+
+    visited = set()
     while heap:
-        heuristic, weight, row, column = heapq.heappop(heap)
-        # if (row, column) == (fire_x, fire_y):
-        #     print("found")
-        #     break
 
-        if abs(row - fire_x) <= FOUND_RADIUS and abs(column - fire_y) <= FOUND_RADIUS:
-            last = (row, column)
-            break
+        current = heapq.heappop(heap)
+        if current[2] not in paths or paths[current[2]][1] > current[1]:
+            paths[current[2]] = [current[3], current[1]]
+        visited.add(current[2])
 
-        for row_man, col_man in DIRECTIONS:
-            new_row, new_column = row + row_man, column + col_man
+        if abs(end.x - current[2][0]) < 10 and abs(end.y - current[2][1]) < 10:
+            return retrace(current[2], paths)
 
-            if not valid(new_row, new_column, WIDTH, HEIGHT) or (new_row, new_column) in visited:
-                continue
+        for d in dirc:
+            new = (current[2][0]+d[0], current[2][1]+d[1])
+            if new not in visited and new[0] > 0 and new[0] < WIDTH and new[1] > 0 and new[1] < HEIGHT:
+                iscollide = False
+                visited.add(new)
+                if valid(new[0], new[1], WIDTH, HEIGHT):
+                    heapq.heappush(heap, [current[1] + VEL +
+                                          heuristic(
+                                              new, end.center), current[1] + VEL,
+                                          new, current[2]])
 
-            best_parent[(new_row, new_column)] = (row, column, weight + WEIGHT) if (new_row,
-                                                                                    new_column) not in best_parent or weight + WEIGHT < best_parent[(new_row, new_column)][2] else best_parent[(new_row, new_column)]
-            visited.add((new_row, new_column))
-            heapq.heappush(heap, (weight + distance(new_row, new_column, enemy.x,
-                                                    enemy.y), weight + WEIGHT, new_row, new_column))
+    return []
 
-    path = []
-    # curr = (fire_x, fire_y)
-    # if (fire_x, fire_y) not in best_parent:
-    #     print("not in best paretn")
-    #     return []
+# def valid(x, y, WIDTH, HEIGHT):
+#     if not (0 < x < WIDTH and 0 < y < HEIGHT):
+#         return False
+#     for wall in walls:
+#         if wall.x <= x <= wall.x + wall.width and wall.y <= y <= wall.y + wall.height:
+#             return False
+#     return True
 
-    curr = last
-    if curr not in best_parent:
-        return
-    while curr != (enemy.x, enemy.y):
-        curr_x, curr_y, weight = best_parent[curr]
-        curr = (curr_x, curr_y)
-        path.append(curr)
-    return path
+
+# def distance(x1, y1, x2, y2):
+#     return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+
+
+# def path_find(enemy, fire_x, fire_y, WIDTH, HEIGHT):
+#     WEIGHT = 1
+#     heap = [(WEIGHT + distance(enemy.x, enemy.y,
+#              fire_x, fire_y), WEIGHT, fire_x, fire_y)]
+#     best_parent = {}
+#     visited = set([(fire_x, fire_y)])
+#     if (enemy.x, enemy.y) == (fire_x, fire_y):
+#         return []
+
+#     # best_parent[(row, column)] = (
+#     #     parent_row, parent_column) if (row, column) not in best_parent or weight <= best_weight[edge.right.name] else best_parent[edge.right.name]
+
+#     while heap:
+#         heuristic, weight, row, column = heapq.heappop(heap)
+#         if (row, column) == (enemy.x, enemy.y):
+#             break
+
+#         for row_man, col_man in DIRECTIONS:
+#             new_row, new_column = row + row_man, column + col_man
+
+#             if not valid(new_row, new_column, WIDTH, HEIGHT) or (new_row, new_column) in visited:
+#                 continue
+
+#             best_parent[(new_row, new_column)] = (row, column, weight + WEIGHT) if (new_row,
+#                                                                                     new_column) not in best_parent or weight + WEIGHT < best_parent[(new_row, new_column)][2] else best_parent[(new_row, new_column)]
+#             visited.add((new_row, new_column))
+#             heap.add((weight + distance(new_row, new_column, enemy.x,
+#                      enemy.y), weight + WEIGHT, new_row, new_column))
+
+#     path = []
+#     curr = (enemy.x, enemy.y)
+#     path.append(curr)
+#     if (enemy.x, enemy.y) not in best_parent:
+#         return []
+#     while curr != (fire_x, fire_y):
+#         curr_x, curr_y, weight = best_parent[curr]
+#         curr = (curr_x, curr_y)
+#         path.append(curr)
+#     return path

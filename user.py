@@ -17,7 +17,7 @@ class User(pygame.sprite.Sprite):
         self.IMAGE_WIDTH = 50
         self.IMAGE_HEIGHT = 50
         self.rot = 0
-        self.health = 100
+        self.health = 1000
         self.originalImage = pygame.transform.scale(
             pygame.image.load(os.path.join("Assets", "images", image)), (self.WIDTH, self.HEIGHT))
         self.image = pygame.transform.scale(

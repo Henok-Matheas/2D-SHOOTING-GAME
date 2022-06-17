@@ -25,6 +25,7 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.center = (self.x, self.y)
         self.path = []
         self.prev = None
+        self.previous_target = None
 
     def shoot(self):
         pass
@@ -50,16 +51,19 @@ class Enemy(pygame.sprite.Sprite):
         rot = 0
         self.rect.center = (self.x, self.y)
         if self.prev != None:
-            rot = math.atan2((self.prev[1] - self.y),
-                             (self.prev[0] - self.x))*180/math.pi
+            rot = math.atan2((self.y - self.prev[1]),
+                             (self.x - self.prev[0]))*180/math.pi * -1
             # rot = math.atan(
             #     (self.prev[1] - self.y) / (self.prev[0] - self.x)) if (self.x - self.prev[0]) != 0 else 0
             # print("the roatation", rot)
-        self.image = pygame.transform.rotate(self.image, rot)
+        self.image = pygame.transform.scale(pygame.transform.rotate(
+            self.originalImage, rot), (self.IMAGE_WIDTH, self.IMAGE_HEIGHT))
         self.prev = self.x, self.y
 
     def update(self, target, WIDTH, HEIGHT):
         if target != None:
-            self.path = path_find(self, target[0], target[1], WIDTH, HEIGHT)
+            self.path = path_find(self.rect, target, WIDTH, HEIGHT)
+            # self.path = path_find(self, target[0], target[1], WIDTH, HEIGHT)
+            self.previous_target = target
         if self.path:
             self.move()

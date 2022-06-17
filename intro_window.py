@@ -74,7 +74,7 @@ def init():
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
     # LOADING IMAGE
-    image = Image.open("Assets/images/survivor-move_shotgun_2.png")
+    image = Image.open("Assets/images/shotgun.jpg")
     width, height = image.width, image.height
     image_data = np.array(list(image.getdata()), dtype=np.uint8)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height,
@@ -127,7 +127,10 @@ def init():
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
     # LOADING IMAGE
-    space_image = Image.open("Assets/images/survivor-move_shotgun_2.png")
+    space_image = Image.open(
+        "Assets/images/rifle.jpg")
+    # space_image = space_image.resize(size=(40, 40), box=(20, 20, 60, 60))
+    # space_image.show()
     width, height = space_image.width, space_image.height
     space_image_data = np.array(list(space_image.getdata()), dtype=np.uint8)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height,
@@ -144,6 +147,7 @@ def init():
 def draw():
     global vao, space_vao, program, texture, space_texture
     glClear(GL_COLOR_BUFFER_BIT)
+    # glEnable(GL_BLEND)
     glUseProgram(program)
 
     # FOR SINGLE IMAGE

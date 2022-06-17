@@ -53,7 +53,7 @@ def init():
         [0.25, -0.25, -.50,   1.0, 1.0, 0.0, 1.0, 0.0],
         [-0.25, -0.25, -.50,  0.0, 0.4, 1.0, 0.0, 0.0],
         [-0.25, 0.25, -.50,   0.0, 0.7, 0.2, 0.0, 1.0],
-    ], dtype=np.float32), "survivor-idle_rifle_0.png", program)
+    ], dtype=np.float32), "rifle.jpg", program)
     # END
 
     # SINGLE OBJECT
@@ -66,7 +66,7 @@ def init():
         [0.85, -0.25, -.50,   1.0, 1.0, 0.0, 1.0, 0.0],
         [0.35, -0.25, -.50,  0.0, 0.4, 1.0, 0.0, 0.0],
         [0.35, 0.25, -.50,   0.0, 0.7, 0.2, 0.0, 1.0],
-    ], dtype=np.float32), "survivor-move_shotgun_2.png", program)
+    ], dtype=np.float32), "shotgun.jpg", program)
     # END
 
 

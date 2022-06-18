@@ -42,7 +42,7 @@ class Menu_Object:
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         # LOADING IMAGE
         self.image = Image.open(os.path.join(
-            "Assets", "images", image))
+            "Assets", "images",image))
         width, height = self.image.width, self.image.height
         self.image_data = np.array(list(self.image.getdata()), dtype=np.uint8)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height,

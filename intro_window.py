@@ -129,6 +129,7 @@ def init():
     # LOADING IMAGE
     space_image = Image.open(
         "Assets/images/rifle.jpg")
+    space_image = space_image.crop((20, 20, 300, 200))
     # space_image = space_image.resize(size=(40, 40), box=(20, 20, 60, 60))
     # space_image.show()
     width, height = space_image.width, space_image.height

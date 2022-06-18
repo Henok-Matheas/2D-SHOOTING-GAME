@@ -8,9 +8,7 @@ from bullet import Bullet
 from enemy import Enemy
 from character_menu import char_menu
 
-
 USER_IMAGE = char_menu()
-
 WIDTH, HEIGHT = 900, 600
 WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Shooting Game")

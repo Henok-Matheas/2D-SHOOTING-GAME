@@ -7,7 +7,7 @@ from pathfind import *
 
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, x, y, image):
+    def __init__(self, x, y, sprites):
         super().__init__()
         self.x = x
         self.y = y
@@ -16,14 +16,8 @@ class Enemy(pygame.sprite.Sprite):
         self.IMAGE_WIDTH = 50
         self.IMAGE_HEIGHT = 50
         self.rot = 0
-        self.health = 100
-        self.sprites = []
-       
-        self.sprites.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 3","walk",  "enemy3walk1.png")), 90))
-        self.sprites.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 3","walk",  "enemy3walk2.png")), 90))
-        self.sprites.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 3","walk",  "enemy3walk3.png")), 90))
-        self.sprites.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 3","walk",  "enemy3walk4.png")), 90))
-
+        self.health = 1000
+        self.sprites = sprites
         self.currentimage = 0
 
         self.originalImage = pygame.transform.scale(
@@ -80,8 +74,11 @@ class Enemy(pygame.sprite.Sprite):
             self.pathlen = len(self.path)
             # self.path = path_find(self, target[0], target[1], WIDTH, HEIGHT)
             self.previous_target = target
+        
         if self.path :
             # curx, cury = self.path[-1]
             # tarx, tary = self.path[0]
             # if math.sqrt((curx - tarx) ** 2 + (cury - tary) ** 2) > SHOOTING_RADIUS//2:
             self.move()
+        
+        

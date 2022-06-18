@@ -36,6 +36,7 @@ BULLET_WIDTH, BULLET_HEIGHT = 10, 10
 DAMAGE = 5
 SHOOTING_RADIUS = 150
 
+MAX_HEALTH = 1000
 
 USER_HIT = pygame.USEREVENT + 1
 ENEMY_HIT = pygame.USEREVENT + 2
@@ -131,13 +132,14 @@ def draw(user_group, enemy_group, keys_pressed, user_bullets, enemy_bullets, tar
 
     user_health_text = ""
     for user in user_group:
-        user_health_text = HEALTH_FONT.render(
-            "HEALTH: " + str(user.health) if user else "0", 1, WHITE)
+    
+        x,y = user.rect.center
+        pygame.draw.rect(WINDOW, YELLOW, pygame.Rect(x,y +30, 0.5* user.health*100/MAX_HEALTH, 10)) 
+    for enemy in enemy_group:
+        x,y = enemy.rect.center
+        pygame.draw.rect(WINDOW, RED, pygame.Rect(x,y +30, 0.5* enemy.health*100/MAX_HEALTH, 10))
 
-    if len(user_group) >= 1:
-        WINDOW.blit(user_health_text, (0,
-                                       HEIGHT - user_health_text.get_height()))
-
+    
     for bullet in user_bullets:
         WINDOW.blit(bullet.image, (bullet.x, bullet.y))
         
@@ -165,9 +167,26 @@ def main():
   
     user_group = pygame.sprite.Group()
     enemy_group = pygame.sprite.Group()
-    user = User(0, 0, USER_IMAGE)
 
-    enemies = [Enemy(750, 10, "survivor-idle_rifle_0.png"), Enemy(750, 10, "survivor-idle_rifle_0.png"), Enemy(750, 10, "survivor-idle_rifle_0.png")]
+    sprites1 = []
+       
+    sprites1.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 3","walk",  "enemy3walk1.png")), 90))
+    sprites1.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 3","walk",  "enemy3walk2.png")), 90))
+    sprites1.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 3","walk",  "enemy3walk3.png")), 90))
+    sprites1.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 3","walk",  "enemy3walk4.png")), 90))
+
+    sprites2 = []
+       
+    sprites2.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 1","walk",  "enemy1walk1.png")), 90))
+    sprites2.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 1","walk",  "enemy1walk2.png")), 90))
+    sprites2.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 1","walk",  "enemy1walk3.png")), 90))
+    sprites2.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 1","walk",  "enemy1walk4.png")), 90))
+
+    usersprites = sprites1 if USER_IMAGE == 1 else sprites2
+    enemysprites = sprites2 if USER_IMAGE == 1 else sprites1
+    user = User(0, 0, usersprites)
+
+    enemies = [Enemy(750, 10, enemysprites), Enemy(750, 10, enemysprites), Enemy(750, 10, enemysprites)]
     
     user_bullets = []
     enemy_bullets = []
@@ -187,7 +206,6 @@ def main():
                     for user in user_group:
                         x,y = user.rect.center
                         user_bullets.append(
-                            
                             Bullet(x, y-7, user.rot, BULLET_VEL, BULLET_WIDTH, BULLET_HEIGHT))
                     BULLET_FIRE_SOUND.play()
                     target = user.rect.centerx, user.rect.centery

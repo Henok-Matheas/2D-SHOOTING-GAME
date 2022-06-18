@@ -8,7 +8,7 @@ ROTATION_VEL = 3
 
 
 class User(pygame.sprite.Sprite):
-    def __init__(self, x, y, image):
+    def __init__(self, x, y, sprites):
         super().__init__()
         self.x = x
         self.y = y
@@ -17,15 +17,9 @@ class User(pygame.sprite.Sprite):
         self.IMAGE_WIDTH = 40
         self.IMAGE_HEIGHT = 40
         self.rot = 0
-        self.health = 10000
+        self.health = 1000
        
-        self.sprites = []
-       
-        self.sprites.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 3","walk",  "enemy3walk1.png")), 90))
-        self.sprites.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 3","walk",  "enemy3walk2.png")), 90))
-        self.sprites.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 3","walk",  "enemy3walk3.png")), 90))
-        self.sprites.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 3","walk",  "enemy3walk4.png")), 90))
-
+        self.sprites = sprites
         self.currentimage = 0
 
         self.originalImage = pygame.transform.scale(

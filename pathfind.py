@@ -20,7 +20,7 @@ def retrace(start, paths):
             cur = paths[cur][0]
              
         return path
-        
+
 def findPath( start, end, width, height):
     #radius in miles
 
@@ -50,7 +50,7 @@ def findPath( start, end, width, height):
             paths[current[2]] = [current[3], current[1]]
         visited.add(current[2])
 
-        if abs(end.x -current[2][0]) < 20 and abs(end.y -current[2][1]) < 20:
+        if abs(end.x -current[2][0]) < 49 and abs(end.y -current[2][1]) < 49:
             return retrace(current[2], paths)
 
         for d in dirc:

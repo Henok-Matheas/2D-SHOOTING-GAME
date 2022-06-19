@@ -2,9 +2,10 @@ import pygame
 from gameWall import walls
 import heapq
 import math
-from M import VEL, WIDTH, HEIGHT
-from collections import defaultdict
 
+from collections import defaultdict
+WIDTH, HEIGHT = 900, 600
+VEL = 3
 # left, right, up, down, left_up, left_down, right_up, right_down
 dirc = [[0, VEL], [VEL, 0], [VEL,VEL], [-VEL, -VEL], [0,-VEL],[-VEL,0],[-VEL, VEL], [VEL, -VEL]]
 

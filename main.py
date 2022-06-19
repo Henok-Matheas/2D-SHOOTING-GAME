@@ -1,13 +1,23 @@
+import asyncio
+import math
+
+import random
+from user import User
+from gameWall import walls
 import os
 import pygame
+from bullet import Bullet
+from enemy import Enemy
+
+from character_menu import char_menu
 
 
-WIDTH, HEIGHT = 900, 500
+USER_IMAGE = char_menu()
+WIDTH, HEIGHT = 900, 600
 WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Frist Game")
+pygame.display.set_caption("Shooting Game")
 pygame.font.init()
 pygame.mixer.init()
-
 
 HEALTH_FONT = pygame.font.SysFont("comicsans", 40)
 WINNER_FONT = pygame.font.SysFont("comicsans", 40)
@@ -17,187 +27,230 @@ WHITE = (255, 255, 255)
 YELLOW = (255, 255, 0)
 RED = (255, 0, 0)
 FPS = 60
-VEL = 5
+VEL = 3
 
-SPACESHIP_WIDTH, SPACESHIP_HEIGHT = 50, 44
 ANGLE = 90
 BULLET_VEL = 7
 MAX_BULLETS = 5
-BULLET_WIDTH, BULLET_HEIGHT = 5, 5
+ENEMY_MAX_BULLETS = 1
+BULLET_WIDTH, BULLET_HEIGHT = 10, 10
+DAMAGE = 2
+SHOOTING_RADIUS = 150
 
-DAMAGE = 5
+MAX_HEALTH = 100
+MISS_RANGE = 10
+USER_HIT = pygame.USEREVENT + 1
+ENEMY_HIT = pygame.USEREVENT + 2
 
-
-YELLOW_HIT = pygame.USEREVENT + 1
-RED_HIT = pygame.USEREVENT + 2
-
+USER_DEAD = pygame.USEREVENT + 3
+ENEMY_DEAD = pygame.USEREVENT + 4
+SEARCH_RADIUS = 350
 BULLET_HIT_SOUND = pygame.mixer.Sound(os.path.join(
-    "Assets", "Grenade+1.mp3"))
+    "Assets", "sounds", "Grenade+1.mp3"))
 BULLET_FIRE_SOUND = pygame.mixer.Sound(os.path.join(
-    "Assets", "Gun+Silencer.mp3"))
+    "Assets", "sounds", "Gun+Silencer.mp3"))
+
+USER_HIT_SOUND = pygame.mixer.Sound(os.path.join(
+    "Assets", "sounds", "3grunt4.wav"))
+
+USER_DEAD_SOUND = pygame.mixer.Sound(os.path.join(
+    "Assets", "sounds", "yell12.wav"))
+
+ENEMY_HIT_SOUND = pygame.mixer.Sound(os.path.join(
+    "Assets", "sounds", "3grunt4.wav"))
+
+ENEMY_DEAD_SOUND = pygame.mixer.Sound(os.path.join(
+    "Assets", "sounds", "yell12.wav"))
+
+WALKING_SOUND = pygame.mixer.Sound(os.path.join(
+    "Assets", "sounds", "Grenade+1.mp3"))
+BACKGROUND = pygame.transform.scale(pygame.image.load(os.path.join("Assets", "images", "bg2.png")), (WIDTH*2, HEIGHT*2))
 
 
-SPACE = pygame.transform.scale(
-    pygame.image.load(os.path.join("Assets", 'space.png')), (WIDTH, HEIGHT))
+def handle_bullets(user_bullets, enemy_bullets, user_group, enemy_group):
+    for bullet in user_bullets:
+        bullet.update(WIDTH, HEIGHT)
 
-YELLOW_SPACESHIP_IMAGE = pygame.image.load(
-    os.path.join("Assets", "spaceship_yellow.png"))
+        for enemy in enemy_group:
+            if enemy.rect.colliderect(bullet):
+                pygame.event.post(pygame.event.Event(ENEMY_HIT))
+                enemy.health -= 10
+                BULLET_HIT_SOUND.play()
+                ENEMY_HIT_SOUND.play()
+                user_bullets.remove(bullet)
+                break
 
-YELLOW_SPACESHIP = pygame.transform.rotate(
-    pygame.transform.scale(YELLOW_SPACESHIP_IMAGE, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), ANGLE)
+            if enemy.health <= 0:
+                ENEMY_DEAD_SOUND.play()
+                enemy_group.remove(enemy)
 
-RED_SPACESHIP_IMAGE = pygame.image.load(
-    os.path.join("Assets", "spaceship_red.png"))
+        if 0 >= bullet.x or bullet.x >= WIDTH or 0 >= bullet.y or bullet.y >= HEIGHT and bullet in user_bullets:
+            user_bullets.remove(bullet)
+            continue
 
-RED_SPACESHIP = pygame.transform.rotate(
-    pygame.transform.scale(RED_SPACESHIP_IMAGE, (SPACESHIP_WIDTH, SPACESHIP_HEIGHT)), -ANGLE)
+        for wall in walls:
+            if bullet.rect.colliderect(wall) and bullet in user_bullets:
+                user_bullets.remove(bullet)
+                break
+
+    for bullet in enemy_bullets:
+        bullet.update(WIDTH, HEIGHT)
+
+        for user in user_group:
+            if user.rect.colliderect(bullet):
+                pygame.event.post(pygame.event.Event(USER_HIT))
+                user.health -= DAMAGE
+                BULLET_HIT_SOUND.play()
+                USER_HIT_SOUND.play()
+                enemy_bullets.remove(bullet)
+
+            if user.health <= 0:
+                USER_DEAD_SOUND.play()
+                user_group.remove(user)
+                return
+
+        if bullet in enemy_bullets and 0 >= bullet.x or bullet.x >= WIDTH or 0 >= bullet.y or bullet.y >= HEIGHT:
+            enemy_bullets.remove(bullet)
+            continue
+
+        for wall in walls:
+            if bullet in enemy_bullets and bullet.rect.colliderect(wall):
+                enemy_bullets.remove(bullet)
+                break
 
 
-BORDER = pygame.Rect(WIDTH / 2 - 5, 0, 10, HEIGHT)
+def draw(user_group, enemy_group, keys_pressed, user_bullets, enemy_bullets, target):
+    WINDOW.blit(BACKGROUND, (0,0))
+    walls.draw(WINDOW)
+    user_group.draw(WINDOW)
+    enemy_group.draw(WINDOW)
+    user_group.update(keys_pressed, WIDTH, HEIGHT, VEL)
+    # enemy_group.update(target, WIDTH, HEIGHT)
 
+    for user in user_group:
+        targt = user.rect if target else None
+        enemy_group.update(targt, WIDTH, HEIGHT, SHOOTING_RADIUS, user, SEARCH_RADIUS)
+
+    user_health_text = ""
+    for user in user_group:
+    
+        x,y = user.rect.center
+        pygame.draw.rect(WINDOW, YELLOW, pygame.Rect(x,y +30, 0.5* user.health*100/MAX_HEALTH, 10)) 
+    for enemy in enemy_group:
+        x,y = enemy.rect.center
+        pygame.draw.rect(WINDOW, RED, pygame.Rect(x,y +30, 0.5* enemy.health*100/MAX_HEALTH, 10))
+
+    
+    for bullet in user_bullets:
+        WINDOW.blit(bullet.image, (bullet.x, bullet.y))
+        
+    for bullet in enemy_bullets:
+        WINDOW.blit(bullet.image, (bullet.x, bullet.y))
+    pygame.display.update()
+
+
+# pygame.mouse.set_visible = False
+async def loadBullets(enemy,rot, enemy_bullets ):
+    enemy_bullets.append(Bullet(enemy.rect.centerx, enemy.rect.centery, rot + random.uniform(0, MISS_RANGE), BULLET_VEL, BULLET_WIDTH, BULLET_HEIGHT))
 
 def draw_winner(text):
-    winner_text = WINNER_FONT.render(text, 1, WHITE)
+    winner_text = WINNER_FONT.render(text, 1, YELLOW)
     WINDOW.blit(winner_text, ((WIDTH // 2) -
-                winner_text.get_width // 2, HEIGHT // 2))
+                winner_text.get_width() // 2, HEIGHT // 2))
 
     pygame.display.update()
-    pygame.time.delay(5000)
-
-
-def draw(red, yellow, yellow_bullets, red_bullets, yellow_health, red_health):
-    WINDOW.blit(SPACE, (0, 0))
-
-    red_health_text = HEALTH_FONT.render(
-        "HEALTH: " + str(red_health), 1, WHITE)
-    yellow_health_text = HEALTH_FONT.render(
-        "HEALTH: " + str(yellow_health), 1, WHITE)
-
-    WINDOW.blit(red_health_text, (WIDTH - red_health_text.get_width(), 0))
-    WINDOW.blit(yellow_health_text, (0, 0))
-    pygame.draw.rect(WINDOW, BLACK, BORDER)
-    WINDOW.blit(YELLOW_SPACESHIP, (yellow.x, yellow.y))
-    WINDOW.blit(RED_SPACESHIP, (red.x, red.y))
-
-    for bullet in yellow_bullets:
-        pygame.draw.rect(WINDOW, YELLOW, bullet)
-
-    for bullet in red_bullets:
-        pygame.draw.rect(WINDOW, RED, bullet)
-
-    pygame.display.update()
-
-
-def yellow_movement_handler(keys_pressed, yellow):
-    if keys_pressed[pygame.K_d]:
-        yellow.x += VEL if (yellow.x + VEL + SPACESHIP_WIDTH) < BORDER.x else 0
-    if keys_pressed[pygame.K_a]:
-        yellow.x -= VEL if (yellow.x - VEL) > 0 else 0
-    if keys_pressed[pygame.K_w]:
-        yellow.y -= VEL if (yellow.y - VEL) > 0 else 0
-    if keys_pressed[pygame.K_s]:
-        yellow.y += VEL if (yellow.y + VEL + SPACESHIP_HEIGHT) < HEIGHT else 0
-
-
-def red_movement_handler(keys_pressed, red):
-    if keys_pressed[pygame.K_RIGHT]:
-        red.x += VEL if (red.x + VEL + SPACESHIP_WIDTH) < WIDTH else 0
-    if keys_pressed[pygame.K_LEFT]:
-        red.x -= VEL if (red.x - VEL) > BORDER.x + BORDER.width else 0
-
-    if keys_pressed[pygame.K_UP]:
-        red.y -= VEL if (red.y - VEL) > 0 else 0
-    if keys_pressed[pygame.K_DOWN]:
-        red.y += VEL if (red.y + VEL + SPACESHIP_HEIGHT) < HEIGHT else 0
-
-
-def handle_bullets(yellow_bullets, red_bullets, yellow, red):
-    for bullet in yellow_bullets:
-        if bullet == None:
-            continue
-        bullet.x += BULLET_VEL
-
-        if red.colliderect(bullet):
-            print("red has been shot")
-            pygame.event.post(pygame.event.Event(RED_HIT))
-            yellow_bullets.remove(bullet)
-
-        elif bullet.x > WIDTH:
-            yellow_bullets.remove(bullet)
-
-    for bullet in red_bullets:
-        if bullet == None:
-            continue
-        bullet.x -= BULLET_VEL
-
-        if yellow.colliderect(bullet):
-            print("yellow has been shot")
-            pygame.event.post(pygame.event.Event(YELLOW_HIT))
-            red_bullets.remove(bullet)
-        elif bullet.x < 0:
-            red_bullets.remove(bullet)
-
+    pygame.time.delay(6000)
+    pygame.quit()
+def to_radian( rot):
+        return math.pi * 2 * rot / 360
 
 def main():
-    yellow = pygame.Rect(100, 300, SPACESHIP_WIDTH, SPACESHIP_HEIGHT)
-    red = pygame.Rect(700, 300, SPACESHIP_WIDTH, SPACESHIP_HEIGHT)
-    yellow_bullets = []
-    red_bullets = []
+  
+    user_group = pygame.sprite.Group()
+    enemy_group = pygame.sprite.Group()
 
-    yellow_health = 100
-    red_health = 100
+    sprites1 = []
+       
+    sprites1.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 3","walk",  "enemy3walk1.png")), 90))
+    sprites1.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 3","walk",  "enemy3walk1.png")), 90))
+    sprites1.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 3","walk",  "enemy3walk2.png")), 90))
+    
+    sprites1.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 3","walk",  "enemy3walk2.png")), 90))
+    sprites1.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 3","walk",  "enemy3walk3.png")), 90))
+   
+    sprites1.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 3","walk",  "enemy3walk3.png")), 90))
+    sprites1.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 3","walk",  "enemy3walk4.png")), 90))
+    sprites1.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 3","walk",  "enemy3walk4.png")), 90))
+  
+    sprites2 = []    
+        
+    sprites2.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 1","walk",  "enemy1walk1.png")), 90))
+    sprites2.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 1","walk",  "enemy1walk1.png")), 90))
+    sprites2.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 1","walk",  "enemy1walk2.png")), 90))
+    sprites2.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 1","walk",  "enemy1walk2.png")), 90))
+    sprites2.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 1","walk",  "enemy1walk3.png")), 90))
+    sprites2.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 1","walk",  "enemy1walk3.png")), 90))
+    sprites2.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 1","walk",  "enemy1walk4.png")), 90))
+    sprites2.append(pygame.transform.rotate(pygame.image.load(os.path.join("Assets", "images", "enemy 1","walk",  "enemy1walk4.png")), 90))
 
-    run = True
+    usersprites = sprites1 if USER_IMAGE == 1 else sprites2
+    enemysprites = sprites2 if USER_IMAGE == 1 else sprites1
+    user = User(0, 0, usersprites)
+
+    enemies = [Enemy(750, 10, enemysprites), Enemy(750, 10, enemysprites), Enemy(750, 10, enemysprites)]
+    
+    user_bullets = []
+    enemy_bullets = []
+    enemy_group.add(enemies.pop())
+    user_group.add(user)
+    target = None
+
     clock = pygame.time.Clock()
-    while run:
+    while True:
         clock.tick(FPS)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                run = False
                 pygame.quit()
 
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RCTRL and len(red_bullets) < MAX_BULLETS:
-                    bullet = pygame.Rect(
-                        red.x + red.width, red.y + (red.height / 2) - BULLET_HEIGHT / 2, BULLET_WIDTH, BULLET_HEIGHT)
-                    red_bullets.append(bullet)
+                if event.key == pygame.K_SPACE and len(user_bullets) < MAX_BULLETS:
+                    for user in user_group:
+                        x,y = user.rect.center
+                        user_bullets.append(
+                            Bullet(x, y-7, user.rot, BULLET_VEL, BULLET_WIDTH, BULLET_HEIGHT))
+                    BULLET_FIRE_SOUND.play()
+                    target = user.rect.centerx, user.rect.centery
+
+        # clock.tick(30)
+        for user in user_group:
+            for enemy in enemy_group:
+                if math.sqrt((enemy.rect.centerx - user.rect.centerx) ** 2 + (enemy.rect.centery - user.rect.centery) ** 2) <= SHOOTING_RADIUS and len(enemy_bullets) < ENEMY_MAX_BULLETS:
+                    # rot = math.awwwentery - user.rect.centery) / (enemy.rect.centerx - user.rect.centerx)) if (enemy.rect.centerx - user.rect.centerx) != 0 else 0
+                    rot = math.atan2(
+                        (user.rect.centery - enemy.rect.centery), (user.rect.centerx - enemy.rect.centerx))*180/math.pi * -1
+                    # enemy_bullets.apcentery - enemy.rect.centery), (user.rect.centerx - enemy.rect.centerx))*180/math.pi * -1
+                    asyncio.run(loadBullets(enemy, rot, enemy_bullets))
+                   
+                    enemy.image = pygame.transform.rotate(
+                        enemy.originalImage, rot)
                     BULLET_FIRE_SOUND.play()
 
-                if event.key == pygame.K_LCTRL and len(yellow_bullets) < MAX_BULLETS:
-                    bullet = pygame.Rect(
-                        yellow.x + yellow.width, yellow.y + (yellow.height / 2) - BULLET_HEIGHT / 2, BULLET_WIDTH, BULLET_HEIGHT)
-                    yellow_bullets.append(bullet)
-                    BULLET_FIRE_SOUND.play()
+        if len(user_group) < 1:
+            draw_winner("ENEMIES HAVE WON")
 
-            if event.type == RED_HIT:
-                red_health -= DAMAGE
-                BULLET_HIT_SOUND.play()
-
-            if event.type == YELLOW_HIT:
-                yellow_health -= DAMAGE
-                BULLET_HIT_SOUND.play()
-
-            winner_text = ""
-
-            if red_health <= 0:
-                winner_text = "RED HAS WON"
-
-            if red_health <= 0:
-                winner_text = "YELLOW HAS WON"
-
-            if winner_text:
-                draw_winner(winner_text)
-                break
-
+        if len(enemy_group) < 1:
+            if enemies:
+                enemy_group.add(enemies.pop())
+            else:
+                draw_winner("You HAVE WON!")
+  
         keys_pressed = pygame.key.get_pressed()
-        handle_bullets(yellow_bullets, red_bullets, yellow, red)
-        yellow_movement_handler(keys_pressed, yellow)
-        red_movement_handler(keys_pressed, red)
 
-        draw(red, yellow, yellow_bullets, red_bullets, yellow_health, red_health)
-
-    main()
+        handle_bullets(user_bullets, enemy_bullets, user_group, enemy_group)
+        draw(user_group, enemy_group, keys_pressed,
+             user_bullets, enemy_bullets, target)
+        target = None
 
 
 if __name__ == "__main__":
-    main()
+    main() 

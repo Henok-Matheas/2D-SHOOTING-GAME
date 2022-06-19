@@ -17,8 +17,8 @@ class User(pygame.sprite.Sprite):
         self.IMAGE_WIDTH = 40
         self.IMAGE_HEIGHT = 40
         self.rot = 0
-        self.health = 1000
-       
+        self.health = 100
+
         self.sprites = sprites
         self.currentimage = 0
 
@@ -50,14 +50,14 @@ class User(pygame.sprite.Sprite):
             self.x += (VEL * math.cos(self.to_radian(self.rot))) if 0 < (self.x +
                                                                          VEL * math.cos(self.to_radian(self.rot))) < WIDTH else 0
             self.y -= (VEL * math.sin(self.to_radian(self.rot))) if 0 < (self.y -
-                                                                         VEL * math.sin(self.to_radian(self.rot))) < WIDTH else 0
+                                                                         VEL * math.sin(self.to_radian(self.rot))) < HEIGHT else 0
 
         if keys_pressed[pygame.K_s]:
             self.currentimage -= 1
             self.x -= (VEL * math.cos(self.to_radian(self.rot))) if 0 < (self.x -
                                                                          VEL * math.cos(self.to_radian(self.rot))) < WIDTH else 0
             self.y += (VEL * math.sin(self.to_radian(self.rot))) if 0 < (self.y +
-                                                                         VEL * math.sin(self.to_radian(self.rot))) < WIDTH else 0
+                                                                         VEL * math.sin(self.to_radian(self.rot))) < HEIGHT else 0
         self.rect.center = (self.x, self.y)
 
         for wall in walls:
